@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTools - Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,sans-serif}
+body{background:#000;color:#fff;min-height:100vh}
+nav{position:sticky;top:0;z-index:10;background:#000;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+.logo{font-weight:900;font-size:20px;letter-spacing:-1px;text-transform:lowercase}
+.logo b{color:#FE2C55}
+.nav-menu{display:flex;gap:6px}
+.nav-menu button{background:transparent;border:1px solid #222;color:#888;padding:7px 13px;border-radius:100px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+.nav-menu button.active{background:#fff;color:#000;border-color:#fff}
+.container{max-width:540px;margin:0 auto;padding:22px 16px 80px}
+.hero{margin-bottom:22px}
+.hero h1{font-size:30px;font-weight:900;line-height:.95;letter-spacing:-1.5px;text-transform:uppercase}
+.hero h1 span{color:#25F4EE}
+.hero p{color:#777;font-size:13px;margin-top:10px;line-height:1.5}
+.card{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:18px;padding:16px}
+.label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.row{display:flex;gap:8px}
+.row input{flex:1;background:#000;border:1px solid #262626;border-radius:12px;padding:14px 13px;color:#fff;font-size:14px;outline:none}
+.row input:focus{border-color:#FE2C55}
+.btn-fetch{background:#FE2C55;border:none;color:#fff;font-weight:800;padding:0 20px;border-radius:12px;cursor:pointer;font-size:13px;text-transform:uppercase}
+.btn-fetch:disabled{opacity:.4}
+.hint{font-size:11px;color:#555;margin-top:9px}
+.hint span{color:#25F4EE}
+.result{display:none;margin-top:18px}
+.vcard{background:#0a0a0a;border:1px solid #1c1c1c;border-radius:18px;overflow:hidden}
+.vtop{display:flex;gap:11px;padding:13px;align-items:center;border-bottom:1px solid #141414}
+.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover}
+.author{flex:1;min-width:0}
+.author h4{font-size:14px;font-weight:800}
+.author p{font-size:12px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.follow{background:#fff;color:#000;font-size:11px;font-weight:800;padding:5px 11px;border-radius:100px;border:none;cursor:pointer}
+.player{width:100%;max-height:460px;background:#000;display:block}
+.desc{padding:13px;font-size:13px;color:#ddd;line-height:1.6}
+.stats{display:flex;gap:16px;padding:0 13px 13px;font-size:12px;color:#999;font-weight:600}
+.stats span{display:flex;align-items:center;gap:5px}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:13px;border-top:1px solid #141414}
+.btn-dl{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px;border-radius:11px;font-weight:800;font-size:12px;cursor:pointer;text-decoration:none;text-transform:uppercase;letter-spacing:.3px;transition:.15s}
+.btn-dl:active{transform:scale(.97)}
+.dl-pink{background:#FE2C55;color:#fff}
+.dl-dark{background:#1a1a1a;color:#fff;border:1px solid #2a2a2a}
+.dl-cyan{background:#25F4EE;color:#000}
+.dl-ghost{background:transparent;color:#fff;border:1px solid #333}
+.tabs{display:flex;gap:6px;background:#111;border-radius:12px;padding:4px;margin-top:16px}
+.tabs button{flex:1;background:transparent;border:none;color:#777;padding:10px;border-radius:8px;font-weight:800;cursor:pointer;font-size:12px;text-transform:uppercase}
+.tabs button.active{background:#fff;color:#000}
+.tab{display:none;margin-top:14px}
+.tab.active{display:block}
+.comment{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:11px;margin-bottom:9px;display:flex;gap:10px}
+.comment img{width:34px;height:34px;border-radius:50%}
+.c-body{flex:1;font-size:13px;min-width:0}
+.c-body b{font-size:13px}
+.c-body p{color:#d0d0d0;margin:5px 0;line-height:1.55;word-break:break-word}
+.c-meta{display:flex;align-items:center;gap:5px;font-size:11px;color:#666;font-weight:600}
+.c-link{color:#25F4EE;text-decoration:none;border-bottom:1px dashed #25F4EE;word-break:break-all}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:3px 8px;border-radius:100px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle}
+.badge-cyan{background:#25F4EE;color:#000}
+.badge-pink{background:#FE2C55;color:#fff}
+.badge-green{background:#25D366;color:#000}
+.badge-gray{background:#222;color:#aaa}
+.empty{color:#555;text-align:center;padding:28px 10px;font-size:13px}
+.loader{text-align:center;padding:30px;display:none}
+.spin{width:32px;height:32px;border:3px solid #1a1a1a;border-top-color:#FE2C55;border-radius:50%;animation:s .8s linear infinite;margin:0 auto 10px}
+@keyframes s{to{transform:rotate(360deg)}}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+.feat{background:#0a0a0a;border:1px solid #1b1b1b;border-radius:14px;padding:13px}
+.feat h4{font-size:12px;font-weight:800;margin:9px 0 4px;text-transform:uppercase}
+.feat p{font-size:12px;color:#777;line-height:1.5}
+.feat .ic{width:34px;height:34px;background:#141414;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.set label{font-size:11px;font-weight:800;display:block;margin:14px 0 6px;color:#999;text-transform:uppercase;letter-spacing:1px}
+.set select{width:100%;background:#000;border:1px solid #262626;color:#fff;padding:12px;border-radius:10px;font-size:14px}
+</style>
+</head>
+<body>
+
+<nav>
+<div class="logo">tik<b>tools</b></div>
+<div class="nav-menu">
+<button class="active" onclick="switchPage('downloader',this)">Downloader</button>
+<button onclick="switchPage('fitur',this)">Fitur</button>
+<button onclick="switchPage('setting',this)">Setting</button>
+</div>
+</nav>
+
+<div class="container">
+
+<div id="page-downloader">
+<div class="hero">
+<h1>Download<br><span>TikTok</span> Tanpa WM</h1>
+<p>Paste link TikTok. Ambil video MP4, MP3, cover, dan baca komentar beserta link preset di dalamnya.</p>
+</div>
+
+<div class="card">
+<div class="label">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25F4EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+Link Video
+</div>
+<div class="row">
+<input id="tiktokUrl" type="url" placeholder="https://vt.tiktok.com/ZSbnV9yJR/">
+<button class="btn-fetch" id="btnFetch" onclick="fetchVideo()">Fetch</button>
+</div>
+<div class="hint">Support link pendek <span>vt.tiktok.com</span> dan link normal <span>tiktok.com/@user/video/...</span></div>
+</div>
+
+<div id="loading" class="loader">
+<div class="spin"></div>
+<div style="font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:1px">Mengambil data...</div>
+</div>
+
+<div id="result" class="result">
+<div class="vcard">
+<div class="vtop">
+<img id="authorAvatar" class="avatar" src="" alt="">
+<div class="author">
+<h4 id="authorName">@username</h4>
+<p id="authorNick">Nama</p>
+</div>
+<button class="follow">Follow</button>
+</div>
+<video id="videoPreview" class="player" controls playsinline></video>
+<div class="desc" id="videoDesc"></div>
+<div class="stats">
+<span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FE2C55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+<span id="statLike">0</span>
+</span>
+<span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25F4EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+<span id="statComment">0</span>
+</span>
+<span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+<span id="statShare">0</span>
+</span>
+</div>
+<div class="dl-grid">
+<a id="dlMp4NoWm" class="btn-dl dl-pink" target="_blank" rel="noopener">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+MP4 No WM
+</a>
+<a id="dlMp4Wm" class="btn-dl dl-dark" target="_blank" rel="noopener">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><polygon points="10 9 15 12 10 15 10 9"/></svg>
+MP4 WM
+</a>
+<a id="dlMp3" class="btn-dl dl-cyan" target="_blank" rel="noopener">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+MP3 Musik
+</a>
+<a id="dlCover" class="btn-dl dl-ghost" target="_blank" rel="noopener">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+Cover HD
+</a>
+</div>
+</div>
+
+<div class="tabs">
+<button class="active" onclick="showTab('info',this)">Info</button>
+<button onclick="showTab('komen',this)">Komentar (<span id="komenCount">0</span>)</button>
+</div>
+
+<div id="tab-info" class="tab active">
+<div class="card" style="margin-top:0">
+<div class="label">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+Detail
+</div>
+<p style="font-size:12px;color:#999" id="detailMusic">Musik: -</p>
+<p style="font-size:12px;color:#999;margin-top:6px" id="detailDuration">Durasi: -</p>
+<p style="font-size:12px;color:#999;margin-top:6px" id="detailViews">Views: -</p>
+<button class="btn-dl dl-dark" style="width:100%;margin-top:14px" onclick="copyVideoLink()">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v3"/></svg>
+Salin Link Asli
+</button>
+</div>
+</div>
+
+<div id="tab-komen" class="tab">
+<div id="commentList"></div>
+<button id="btnMoreComment" class="btn-dl dl-dark" style="width:100%;display:none" onclick="loadMoreComments()">Muat Lebih Banyak</button>
+</div>
+</div>
+
+</div>
+
+<div id="page-fitur" style="display:none">
+<div class="hero"><h1>Fitur <span>Utama</span></h1><p>Yang kamu butuhkan, tanpa ribet.</p></div>
+<div class="feat-grid">
+<div class="feat">
+<div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FE2C55" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+<h4>No Watermark</h4>
+<p>Video bersih tanpa logo TikTok, kualitas asli.</p>
+</div>
+<div class="feat">
+<div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#25F4EE" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+<h4>Ambil MP3</h4>
+<p>Ekstrak musik dan suara video jadi audio.</p>
+</div>
+<div class="feat">
+<div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+<h4>Komentar + Link</h4>
+<p>Link preset di komentar otomatis bisa diklik.</p>
+</div>
+<div class="feat">
+<div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FE2C55" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+<h4>Link Pendek</h4>
+<p>Langsung support vt.tiktok.com tanpa ribet.</p>
+</div>
+</div>
+
+<div class="card" style="margin-top:16px">
+<div class="label">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25F4EE" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+Contoh Komentar Berlink
+</div>
+<div id="contohKomentar"></div>
+</div>
+</div>
+
+<div id="page-setting" style="display:none">
+<div class="hero"><h1>Setting</h1><p>Tersimpan otomatis di browser.</p></div>
+<div class="card set">
+<label>Jumlah Komentar</label>
+<select id="setCommentCount">
+<option value="20">20 Komentar</option>
+<option value="30" selected>30 Komentar</option>
+<option value="50">50 Komentar</option>
+</select>
+<label>Download Default</label>
+<select id="setDefaultDl">
+<option value="nowm">MP4 No Watermark</option>
+<option value="wm">MP4 Watermark</option>
+<option value="mp3">MP3</option>
+</select>
+<button class="btn-dl dl-pink" style="width:100%;margin-top:18px" onclick="saveSettings()">Simpan Setting</button>
+</div>
+</div>
+
+</div>
+
+<script>
+let currentVideoId=null, currentUrl=null, commentCursor=0, allLoaded=false;
+
+const contoh=[
+  {user:"preset.alight", text:"Preset 5MB :\nhttps://alightcreative.com/am/share/u/8Uwf4huKg4PKcTxZGHSB90Zm1Cj2/p/SdhjpPX8sh-a0497318f84f6d00", likes:128},
+  {user:"editor.xml", text:"Preset XML\nhttps://drive.google.com/file/d/1Hfpyv6D55lPU987HmJ9Fbqivijktoxnu/view?usp=drivesdk", likes:96},
+  {user:"info.saluran", text:"Saluran :\nhttps://whatsapp.com/channel/0029Vb8XcfcD8SE3sielAT17", likes:250}
+];
+function renderContoh(){
+  document.getElementById('contohKomentar').innerHTML=contoh.map(c=>`
+    <div class="comment">
+      <img src="https://i.pravatar.cc/100?u=${c.user}" alt="">
+      <div class="c-body"><b>@${c.user}</b><p>${linkify(c.text)}</p>
+      <div class="c-meta">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FE2C55" stroke="#FE2C55" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        ${c.likes}
+      </div></div>
+    </div>`).join('');
+}
+renderContoh();
+
+function switchPage(p,btn){
+  document.querySelectorAll('.nav-menu button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-downloader').style.display=p==='downloader'?'block':'none';
+  document.getElementById('page-fitur').style.display=p==='fitur'?'block':'none';
+  document.getElementById('page-setting').style.display=p==='setting'?'block':'none';
+}
+function showTab(t,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-info').classList.toggle('active',t==='info');
+  document.getElementById('tab-komen').classList.toggle('active',t==='komen');
+}
+
+function linkify(text){
+  return text.replace(/(https?:\/\/[^\s<]+)/g,(url)=>{
+    let badge='Link', cls='badge-gray';
+    if(url.includes('alightcreative.com')){badge='Preset';cls='badge-cyan';}
+    else if(url.includes('drive.google.com')){badge='Drive';cls='badge-pink';}
+    else if(url.includes('whatsapp.com')){badge='Saluran';cls='badge-green';}
+    else if(/\.(mp3|mp4|xml|zip)$/i.test(url)){badge='File';cls='badge-pink';}
+    return `<a href="${url}" target="_blank" rel="noopener" class="c-link">${url}</a><span class="badge ${cls}">${badge}</span>`;
+  });
+}
+function fmt(n){ if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n||0; }
+
+async function fetchVideo(){
+  const urlInput=document.getElementById('tiktokUrl').value.trim();
+  if(!urlInput){alert('Masukkan link dulu');return;}
+  currentUrl=urlInput;
+  document.getElementById('loading').style.display='block';
+  document.getElementById('result').style.display='none';
+  document.getElementById('btnFetch').disabled=true;
+  try{
+    const res=await fetch('https://www.tikwm.com/api/?url='+encodeURIComponent(urlInput));
+    const json=await res.json();
+    if(json.code!==0) throw new Error(json.msg||'Video tidak ditemukan');
+    const d=json.data;
+    currentVideoId=d.id;
+    document.getElementById('authorAvatar').src=d.author.avatar;
+    document.getElementById('authorName').textContent='@'+d.author.unique_id;
+    document.getElementById('authorNick').textContent=d.author.nickname;
+    document.getElementById('videoDesc').textContent=d.title;
+    document.getElementById('videoPreview').src=d.play;
+    document.getElementById('statLike').textContent=fmt(d.digg_count);
+    document.getElementById('statComment').textContent=fmt(d.comment_count);
+    document.getElementById('statShare').textContent=fmt(d.share_count);
+    document.getElementById('detailMusic').textContent='Musik: '+(d.music_info?.title||'-');
+    document.getElementById('detailDuration').textContent='Durasi: '+(d.duration||'-')+' detik';
+    document.getElementById('detailViews').textContent='Views: '+fmt(d.play_count);
+    document.getElementById('dlMp4NoWm').href=d.play;
+    document.getElementById('dlMp4Wm').href=d.wmplay||d.play;
+    document.getElementById('dlMp3').href=d.music||d.play;
+    document.getElementById('dlCover').href=d.cover;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('result').style.display='block';
+    loadComments(true);
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    alert('Gagal: '+e.message);
+  }
+  document.getElementById('btnFetch').disabled=false;
+}
+
+async function loadComments(reset=false){
+  if(!currentVideoId) return;
+  if(reset){commentCursor=0;allLoaded=false;document.getElementById('commentList').innerHTML='<div class="empty">Memuat komentar...</div>';}
+  if(allLoaded) return;
+  const count=parseInt(localStorage.getItem('setCommentCount')||'30');
+  try{
+    const res=await fetch(`https://www.tikwm.com/api/comment/list?id=${currentVideoId}&count=${count}&cursor=${commentCursor}`);
+    const json=await res.json();
+    const comments=json.data?.comments||[];
+    if(!comments.length){allLoaded=true;if(reset)document.getElementById('commentList').innerHTML='<div class="empty">Tidak ada komentar.</div>';document.getElementById('btnMoreComment').style.display='none';return;}
+    commentCursor=json.data?.cursor||(commentCursor+count);
+    const html=comments.map(c=>`
+      <div class="comment">
+        <img src="${c.author?.avatar||'https://i.pravatar.cc/100'}" alt="">
+        <div class="c-body">
+          <b>@${c.author?.unique_id||c.author?.nickname||'user'}</b>
+          <p>${linkify(c.text||'-')}</p>
+          <div class="c-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FE2C55" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            ${c.digg_count||0}
+          </div>
+        </div>
+      </div>`).join('');
+    if(reset) document.getElementById('commentList').innerHTML=html;
+    else document.getElementById('commentList').insertAdjacentHTML('beforeend',html);
+    document.getElementById('btnMoreComment').style.display='block';
+  }catch(e){
+    document.getElementById('commentList').innerHTML='<div class="empty">Gagal memuat komentar.</div>';
+  }
+}
+function loadMoreComments(){loadComments(false);}
+function copyVideoLink(){navigator.clipboard.writeText(currentUrl);alert('Link tersalin');}
+function saveSettings(){
+  localStorage.setItem('setCommentCount',document.getElementById('setCommentCount').value);
+  localStorage.setItem('setDefaultDl',document.getElementById('setDefaultDl').value);
+  alert('Tersimpan');
+}
+document.getElementById('setCommentCount').value=localStorage.getItem('setCommentCount')||'30';
+document.getElementById('setDefaultDl').value=localStorage.getItem('setDefaultDl')||'nowm';
+document.getElementById('tiktokUrl').addEventListener('keydown',e=>{if(e.key==='Enter')fetchVideo();});
+</script>
+</body>
+</html>
